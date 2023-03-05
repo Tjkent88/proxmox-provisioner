@@ -20,4 +20,3 @@ dependencies:
       pip_install_packages:
         - proxmoxer
   - role: community.general
-

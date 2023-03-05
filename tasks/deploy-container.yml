@@ -4,38 +4,31 @@
     name: proxmoxer
   become: true
 
-- name: Create CT for services
+- name: Create CT for services that starts when proxmox reboots
   community.general.proxmox:
     node: '{{ node }}'
     api_user: '{{ promox_api_id }}'
     api_password: '{{ proxmox_default_root }}'
-    api_host: '192.168.1.189'
+    api_host: '{{ api_host }}'
     password: '{{ proxmox_default_root }}'
     onboot: true
     hostname: '{{ hostname }}'
-    disk: local-lvm:8
+    disk: "{{ disk_storage }}:{{ container_disk_usage }}"
     cores: "{{ cores }}"
     cpus: "{{ cpus }}"
     memory: "{{ memory }}"
     storage: local
-    state: present
+    state: "{{ state }}"
     netif: '{"net0":"name=eth0,ip=dhcp,ip6=dhcp,bridge=vmbr0"}'
-    pubkey: "{{ lookup('file', 'roles/base/files/pve-services.pub') }}"
+    pubkey: "{{ default_ssh_key }}"
     ostemplate: "{{ ostemplate }}"
-    tags:
-      - pve-services
-  register: pvedeployed
-
-- name: Debug
-  ansible.builtin.debug:
-    var: pvedeployed
 
 - name: Turn on container
   community.general.proxmox:
-    node: 'pve'
+    node: '{{ node }}'
     api_user: '{{ promox_api_id }}'
     api_password: '{{ proxmox_default_root }}'
-    api_host: '192.168.1.189'
+    api_host: '{{ api_host }}'
     password: '{{ proxmox_default_root }}'
     hostname: '{{ hostname }}'
     state: started

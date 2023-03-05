@@ -1,0 +1,41 @@
+---
+- name: Install proxmoxer module
+  ansible.builtin.pip:
+    name: proxmoxer
+  become: true
+
+- name: Create CT for services
+  community.general.proxmox:
+    node: '{{ node }}'
+    api_user: '{{ promox_api_id }}'
+    api_password: '{{ proxmox_default_root }}'
+    api_host: '192.168.1.189'
+    password: '{{ proxmox_default_root }}'
+    onboot: true
+    hostname: '{{ hostname }}'
+    disk: local-lvm:8
+    cores: "{{ cores }}"
+    cpus: "{{ cpus }}"
+    memory: "{{ memory }}"
+    storage: local
+    state: present
+    netif: '{"net0":"name=eth0,ip=dhcp,ip6=dhcp,bridge=vmbr0"}'
+    pubkey: "{{ lookup('file', 'roles/base/files/pve-services.pub') }}"
+    ostemplate: "{{ ostemplate }}"
+    tags:
+      - pve-services
+  register: pvedeployed
+
+- name: Debug
+  ansible.builtin.debug:
+    var: pvedeployed
+
+- name: Turn on container
+  community.general.proxmox:
+    node: 'pve'
+    api_user: '{{ promox_api_id }}'
+    api_password: '{{ proxmox_default_root }}'
+    api_host: '192.168.1.189'
+    password: '{{ proxmox_default_root }}'
+    hostname: '{{ hostname }}'
+    state: started
